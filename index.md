@@ -7,4 +7,4 @@ This is where I'm going to be posting all of my WebGL code for this semester so 
 
 ## Homework
 
-0. [Homework 0](/hw0/)
+0. [Homework 0](hw0/)
