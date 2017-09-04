@@ -112,55 +112,29 @@ function initBuffers(gl) {
 
   // Now create an array of positions for the cylinder.
 
-  const sides = [
-    // Frontl face
-    -invRad2, -1.0,  invRad2,
-     0.0,     -1.0,  1.0,
-     0.0,      1.0,  1.0,
-    -invRad2,  1.0,  invRad2,
+  let sides = [];
 
-    // Frontr face
-     0.0,     -1.0,  1.0,
-     invRad2, -1.0,  invRad2,
-     invRad2,  1.0,  invRad2,
-     0.0,      1.0,  1.0,
-
-    // Rightf face
-     1.0,     -1.0,  0.0,
-     invRad2, -1.0,  invRad2,
-     invRad2,  1.0,  invRad2,
-     1.0,      1.0,  0.0,
-
-    // Rightb face
-     1.0,     -1.0,  0.0,
-     invRad2, -1.0,  -invRad2,
-     invRad2,  1.0,  -invRad2,
-     1.0,      1.0,  0.0,
-
-    // Backr face
-    invRad2, -1.0,  -invRad2,
-     0.0,     -1.0,  -1.0,
-     0.0,      1.0,  -1.0,
-    invRad2,  1.0,  -invRad2,
-
-    // Backl face
-    0.0,      -1.0,  -1.0,
-    -invRad2, -1.0,  -invRad2,
-    -invRad2,  1.0,  -invRad2,
-    0.0,      1.0,  -1.0,
-
-    // Leftb face
-    -1.0,     -1.0,  0.0,
-    -invRad2, -1.0,  -invRad2,
-    -invRad2,  1.0,  -invRad2,
-    -1.0,      1.0,  0.0,
-
-    // Leftf face
-    -invRad2, -1.0,  invRad2,
-    -1.0,     -1.0,  0.0,
-    -1.0,      1.0,  0.0,
-    -invRad2,  1.0,  invRad2,
-  ];
+  // This generates the sides of the cylinder
+  let lastx = 1.0; 
+  let lastz = 0.0;
+  const numSides = 8;
+  for (let j = 1; j <= numSides; j++){
+    let rads = (j/numSides)*2*Math.PI;
+    let newx = Math.cos(rads); 
+    let newz = Math.sin(rads); 
+    // make one face
+    let face = [
+    lastx,  1.0, lastz,
+    newx,   1.0, newz,
+    newx,  -1.0, newz,
+    lastx, -1.0, lastz,
+    ];
+    console.log(face);
+    sides = sides.concat(face);
+    lastx = newx;
+    lastz = newz;
+  }
+  console.log(sides);
   
   topbottom = [
     // top face  
@@ -206,7 +180,6 @@ function initBuffers(gl) {
   }
 
   // generates indices for top and bottom since they are not squares
-  const numSides = sides.length / 12;
   const sidesVerts = sides.length / 3; // number of vertices in sides
   const bottomIndex = sidesVerts + numSides + 1 // index of the first bottom vert
   for (var j = 0; j <= numSides; j++){
@@ -214,8 +187,6 @@ function initBuffers(gl) {
 
       indices = indices.concat(bottomIndex, bottomIndex + j, bottomIndex + 1 + (j % numSides));
   }
-  console.log(sides.length);
-  console.log(indices);
   
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
