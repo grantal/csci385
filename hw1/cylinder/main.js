@@ -110,44 +110,56 @@ function initBuffers(gl) {
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  // Now create an array of positions for the cube.
+  // Now create an array of positions for the cylinder.
 
   const positions = [
-    // Front face
-    -1.0, -1.0,  1.0,
-     1.0, -1.0,  1.0,
-     1.0,  1.0,  1.0,
-    -1.0,  1.0,  1.0,
+    // Frontl face
+    -invRad2, -1.0,  invRad2,
+     0.0,     -1.0,  1.0,
+     0.0,      1.0,  1.0,
+    -invRad2,  1.0,  invRad2,
 
-    // Right face
-     1.0, -1.0, -1.0,
-     1.0,  1.0, -1.0,
-     1.0,  1.0,  1.0,
-     1.0, -1.0,  1.0,
+    // Frontr face
+     0.0,     -1.0,  1.0,
+     invRad2, -1.0,  invRad2,
+     invRad2,  1.0,  invRad2,
+     0.0,      1.0,  1.0,
 
-    // Back face
-    -1.0, -1.0, -1.0,
-    -1.0,  1.0, -1.0,
-     1.0,  1.0, -1.0,
-     1.0, -1.0, -1.0,
+    // Rightf face
+     1.0,     -1.0,  0.0,
+     invRad2, -1.0,  invRad2,
+     invRad2,  1.0,  invRad2,
+     1.0,      1.0,  0.0,
 
-    // Left face
-    -1.0, -1.0, -1.0,
-    -1.0, -1.0,  1.0,
-    -1.0,  1.0,  1.0,
-    -1.0,  1.0, -1.0,
+    // Rightb face
+     1.0,     -1.0,  0.0,
+     invRad2, -1.0,  -invRad2,
+     invRad2,  1.0,  -invRad2,
+     1.0,      1.0,  0.0,
 
-    // Top face
-    -1.0,  1.0, -1.0,
-    -1.0,  1.0,  1.0,
-     1.0,  1.0,  1.0,
-     1.0,  1.0, -1.0,
+    // Backr face
+    invRad2, -1.0,  -invRad2,
+     0.0,     -1.0,  -1.0,
+     0.0,      1.0,  -1.0,
+    invRad2,  1.0,  -invRad2,
 
-    // Bottom face
-    -1.0, -1.0, -1.0,
-     1.0, -1.0, -1.0,
-     1.0, -1.0,  1.0,
-    -1.0, -1.0,  1.0,
+    // Backl face
+    0.0,      -1.0,  -1.0,
+    -invRad2, -1.0,  -invRad2,
+    -invRad2,  1.0,  -invRad2,
+    0.0,      1.0,  -1.0,
+
+    // Leftb face
+    -1.0,     -1.0,  0.0,
+    -invRad2, -1.0,  -invRad2,
+    -invRad2,  1.0,  -invRad2,
+    -1.0,      1.0,  0.0,
+
+    // Leftf face
+    -invRad2, -1.0,  invRad2,
+    -1.0,     -1.0,  0.0,
+    -1.0,      1.0,  0.0,
+    -invRad2,  1.0,  invRad2,
   ];
 
   // Now pass the list of positions into WebGL to build the
@@ -191,14 +203,15 @@ function initBuffers(gl) {
   // indices into the vertex array to specify each triangle's
   // position.
 
-  const indices = [
-    0,  1,  2,      0,  2,  3,    // front
-    4,  5,  6,      4,  6,  7,    // right
-    8,  9,  10,     8,  10, 11,   // back
-    12, 13, 14,     12, 14, 15,   // left
-    16, 17, 18,     16, 18, 19,   // top
-    20, 21, 22,     20, 22, 23,   // bottom
-  ];
+  let indices = [];
+
+  // this generates the indices list assuming that postitions defines squares
+  // with the list order bottom left, bottom right, top right, top left
+  for (var j = 0; j < (positions.length / 12); j++) {
+    let fourj = j * 4;
+    indices = indices.concat(fourj, fourj + 1, fourj + 2, fourj, fourj + 2, fourj + 3);
+  }
+  
 
   // Now send the element array to GL
 
@@ -209,6 +222,7 @@ function initBuffers(gl) {
     position: positionBuffer,
     color: colorBuffer,
     indices: indexBuffer,
+    vertices: indices.length,
   };
 }
 
@@ -217,7 +231,6 @@ function initBuffers(gl) {
 //
 function drawScene(gl, programInfo, buffers, xChange, yChange) {
   // Update the rotation
-
   yRotation += yChange;
   xRotation += xChange;
 
@@ -329,7 +342,7 @@ function drawScene(gl, programInfo, buffers, xChange, yChange) {
       modelViewMatrix);
 
   {
-    const vertexCount = 36;
+    const vertexCount = buffers.vertices; // get vertex count from buffers
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
