@@ -1,6 +1,9 @@
 var yRotation = 0.0;
 var xRotation = 0.0;
 
+// approximately the inverse square root of 2
+const invRad2 = 0.70710678118;
+
 main();
 
 //
@@ -67,12 +70,8 @@ function main() {
   // Here's where we call the routine that builds all the
   // objects we'll be drawing.
   const buffers = initBuffers(gl);
-  
-  // draw initial scene
-  drawScene(gl, programInfo, buffers, 0.0, 0.0);
 
-  // draw a new scene on every key input and rotate the object based
-  // on the arrow keys
+  drawScene(gl, programInfo, buffers, 0.0, 0.0);
   document.addEventListener('keydown', function rotateHandler(e){
     xChange = 0.0;
     yChange = 0.0;
@@ -114,25 +113,41 @@ function initBuffers(gl) {
   // Now create an array of positions for the cube.
 
   const positions = [
-    // Back face
-     0.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     0.0,  1.0,  0.0,
+    // Front face
+    -1.0, -1.0,  1.0,
+     1.0, -1.0,  1.0,
+     1.0,  1.0,  1.0,
+    -1.0,  1.0,  1.0,
 
-    // Bottom face
-     0.0,  0.0,  0.0,
-     1.0,  0.0,  0.0,
-     0.0,  0.0,  1.0,
+    // Right face
+     1.0, -1.0, -1.0,
+     1.0,  1.0, -1.0,
+     1.0,  1.0,  1.0,
+     1.0, -1.0,  1.0,
+
+    // Back face
+    -1.0, -1.0, -1.0,
+    -1.0,  1.0, -1.0,
+     1.0,  1.0, -1.0,
+     1.0, -1.0, -1.0,
 
     // Left face
-     0.0,  0.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  0.0,  1.0,
+    -1.0, -1.0, -1.0,
+    -1.0, -1.0,  1.0,
+    -1.0,  1.0,  1.0,
+    -1.0,  1.0, -1.0,
 
-    // Front face
-     1.0,  0.0,  0.0,
-     0.0,  1.0,  0.0,
-     0.0,  0.0,  1.0,
+    // Top face
+    -1.0,  1.0, -1.0,
+    -1.0,  1.0,  1.0,
+     1.0,  1.0,  1.0,
+     1.0,  1.0, -1.0,
+
+    // Bottom face
+    -1.0, -1.0, -1.0,
+     1.0, -1.0, -1.0,
+     1.0, -1.0,  1.0,
+    -1.0, -1.0,  1.0,
   ];
 
   // Now pass the list of positions into WebGL to build the
@@ -144,22 +159,22 @@ function initBuffers(gl) {
   // Now set up the colors for the faces. We'll use solid colors
   // for each face.
 
+  // each face will be one of two colors and we'll alternate for each face
+
   const faceColors = [
-    [1.0,  0.3,  0.0,  1.0],    // Back face: orange
-    [1.0,  1.0,  1.0,  1.0],    // Bottom face: white
-    [1.0,  1.0,  0.0,  1.0],    // Left face: yellow
-    [0.0,  1.0,  0.0,  1.0],    // Front face: green
+    [1.0,  1.0,  1.0,  1.0],    // first color: white
+    [1.0,  0.0,  0.0,  1.0],    // second color: red
   ];
 
   // Convert the array of colors into a table for all the vertices.
 
   var colors = [];
 
-  for (var j = 0; j < faceColors.length; ++j) {
-    const c = faceColors[j];
+  for (var j = 0; j < (positions.length / 4); ++j) {
+    const c = faceColors[j % 2];
 
-    // Repeat each color three times for the three vertices of the face
-    colors = colors.concat(c, c, c);
+    // Repeat each color four times for the four vertices of the face
+    colors = colors.concat(c, c, c, c);
   }
 
   const colorBuffer = gl.createBuffer();
@@ -172,15 +187,17 @@ function initBuffers(gl) {
   const indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-  // This array defines each face as one triangle, using the
+  // This array defines each face as two triangles, using the
   // indices into the vertex array to specify each triangle's
   // position.
 
   const indices = [
-    0,  1,  2, // back
-    3,  4,  5, // bottom
-    6,  7,  8, // left
-    9, 10, 11, // front
+    0,  1,  2,      0,  2,  3,    // front
+    4,  5,  6,      4,  6,  7,    // right
+    8,  9,  10,     8,  10, 11,   // back
+    12, 13, 14,     12, 14, 15,   // left
+    16, 17, 18,     16, 18, 19,   // top
+    20, 21, 22,     20, 22, 23,   // bottom
   ];
 
   // Now send the element array to GL
@@ -312,7 +329,7 @@ function drawScene(gl, programInfo, buffers, xChange, yChange) {
       modelViewMatrix);
 
   {
-    const vertexCount = 12;
+    const vertexCount = 36;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
