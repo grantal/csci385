@@ -112,7 +112,7 @@ function initBuffers(gl) {
 
   // Now create an array of positions for the cylinder.
 
-  const positions = [
+  const sides = [
     // Frontl face
     -invRad2, -1.0,  invRad2,
      0.0,     -1.0,  1.0,
@@ -161,12 +161,74 @@ function initBuffers(gl) {
     -1.0,      1.0,  0.0,
     -invRad2,  1.0,  invRad2,
   ];
+  
+  topbottom = [
+    // top face  
+     0.0,      1.0,  0.0, // center of top
+     0.0,      1.0,  1.0,
+     invRad2,  1.0,  invRad2,
+     1.0,      1.0,  0.0,
+     invRad2,  1.0, -invRad2,
+     0.0,      1.0,  -1.0,
+    -invRad2,  1.0, -invRad2,
+    -1.0,      1.0,  0.0,
+    -invRad2,  1.0,  invRad2,
 
+    // bottom face  
+     0.0,     -1.0,  0.0, // center of bottom
+     0.0,     -1.0,  1.0,
+     invRad2, -1.0,  invRad2,
+     1.0,     -1.0,  0.0,
+     invRad2, -1.0, -invRad2,
+     0.0,     -1.0,  -1.0,
+    -invRad2, -1.0, -invRad2,
+    -1.0,     -1.0,  0.0,
+    -invRad2, -1.0,  invRad2,
+  ];
+
+  // Build the element array buffer; this specifies the indices
+  // into the vertex arrays for each face's vertices.
+
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+  // This array defines each face as two triangles, using the
+  // indices into the vertex array to specify each triangle's
+  // position.
+
+  let indices = [];
+
+  // this generates the indices list assuming that postitions defines squares
+  // with the list order bottom left, bottom right, top right, top left
+  for (var j = 0; j < (sides.length / 12); ++j) {
+    let fourj = j * 4;
+    indices = indices.concat(fourj, fourj + 1, fourj + 2, fourj, fourj + 2, fourj + 3);
+  }
+
+  // generates indices for top and bottom since they are not squares
+  const numSides = sides.length / 12;
+  const sidesVerts = sides.length / 3; // number of vertices in sides
+  const bottomIndex = sidesVerts + numSides + 1 // index of the first bottom vert
+  for (var j = 0; j <= numSides; j++){
+      indices = indices.concat(sidesVerts, sidesVerts + j, sidesVerts + 1 + (j % numSides));
+
+      indices = indices.concat(bottomIndex, bottomIndex + j, bottomIndex + 1 + (j % numSides));
+  }
+  console.log(sides.length);
+  console.log(indices);
+  
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
   // JavaScript array, then use it to fill the current buffer.
 
+  const positions = sides.concat(topbottom);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+  // Now send the element array to GL
+
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(indices), gl.STATIC_DRAW);
+
 
   // Now set up the colors for the faces. We'll use solid colors
   // for each face.
@@ -193,30 +255,6 @@ function initBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
-  // Build the element array buffer; this specifies the indices
-  // into the vertex arrays for each face's vertices.
-
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-
-  let indices = [];
-
-  // this generates the indices list assuming that postitions defines squares
-  // with the list order bottom left, bottom right, top right, top left
-  for (var j = 0; j < (positions.length / 12); j++) {
-    let fourj = j * 4;
-    indices = indices.concat(fourj, fourj + 1, fourj + 2, fourj, fourj + 2, fourj + 3);
-  }
-  
-
-  // Now send the element array to GL
-
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(indices), gl.STATIC_DRAW);
 
   return {
     position: positionBuffer,
