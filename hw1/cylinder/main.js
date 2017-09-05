@@ -1,9 +1,6 @@
 var yRotation = 0.0;
 var xRotation = 0.0;
 
-// approximately the inverse square root of 2
-const invRad2 = 0.70710678118;
-
 main();
 
 //
@@ -69,8 +66,9 @@ function main() {
 
   // Here's where we call the routine that builds all the
   // objects we'll be drawing.
-  const buffers = initBuffers(gl);
+  let buffers = initBuffers(gl, 8);
 
+  // this lets the arrow keys rotate the object
   drawScene(gl, programInfo, buffers, 0.0, 0.0);
   document.addEventListener('keydown', function rotateHandler(e){
     xChange = 0.0;
@@ -91,17 +89,39 @@ function main() {
     }
     drawScene(gl, programInfo, buffers, xChange, yChange);
   }); 
+
+  // this makes it so that the slider adjusts the fineness
+  const slider = document.querySelector('#numSides');
+  const span = document.querySelector('#sideSpan');
+  // this gets it to display the number by the slider
+  let sliderMouseDown = false;
+  slider.addEventListener('mousedown', function sliderMouseDownListener(e){
+    sliderMouseDown = true;
+  });
+  slider.addEventListener('mousemove', function sliderMouseDownListener(e){
+    if (sliderMouseDown) {
+      span.innerHTML = e.target.value;
+    }
+  });
+  // heres where it actually rerenders
+  slider.addEventListener('mouseup', function sliderReRender(e){
+    sliderMouseDown = false;
+    numSides = Number(e.target.value);
+    buffers = initBuffers(gl, numSides);
+    drawScene(gl, programInfo, buffers, 0.0, 0.0);
+  });
+
 }
 
 //
 // initBuffers
 //
 // Initialize the buffers we'll need. For this demo, we just
-// have one object -- a simple three-dimensional cube.
+// have one object -- a simple three-dimensional cylinder.
 //
-function initBuffers(gl) {
+function initBuffers(gl, numSides) {
 
-  // Create a buffer for the cube's vertex positions.
+  // Create a buffer for the cylinder's vertex positions.
 
   const positionBuffer = gl.createBuffer();
 
@@ -119,7 +139,6 @@ function initBuffers(gl) {
   // This generates the positions of the cylinder
   let lastx = 1.0; 
   let lastz = 0.0;
-  const numSides = 16;
   for (let j = 1; j <= numSides; j++){
     let rads = (j/numSides)*2*Math.PI;
     let newx = Math.cos(rads); 
