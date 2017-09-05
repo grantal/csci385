@@ -135,6 +135,9 @@ function initBuffers(gl, numSides) {
   let positions = [];
 
   // This generates the positions of the sphere
+  // I use spherical coordinates and just increment theta and phi
+  // and use those to calculate the x,y and z of the surface of the
+  // sphere
   for (let j = 0; j <= numSides; j++){
     let theta = (j/numSides)*2*Math.PI;
     for (let k = 0; k <= numSides; k++){
