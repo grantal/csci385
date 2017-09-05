@@ -113,52 +113,40 @@ function initBuffers(gl) {
   // Now create an array of positions for the cylinder.
 
   let sides = [];
+  let topface = [0.0,  1.0, 0.0];
+  let bottom =  [0.0, -1.0, 0.0];
 
-  // This generates the sides of the cylinder
+  // This generates the positions of the cylinder
   let lastx = 1.0; 
   let lastz = 0.0;
-  const numSides = 8;
+  const numSides = 16;
   for (let j = 1; j <= numSides; j++){
     let rads = (j/numSides)*2*Math.PI;
     let newx = Math.cos(rads); 
     let newz = Math.sin(rads); 
-    // make one face
+    // make one side face
     let face = [
     lastx,  1.0, lastz,
     newx,   1.0, newz,
     newx,  -1.0, newz,
     lastx, -1.0, lastz,
     ];
-    console.log(face);
     sides = sides.concat(face);
+    // add to top and bottom face
+    topface = topface.concat(lastx,  1.0, lastz);
+    bottom  =  bottom.concat(lastx, -1.0, lastz);
+
+    // set last variables 
     lastx = newx;
     lastz = newz;
   }
-  console.log(sides);
-  
-  topbottom = [
-    // top face  
-     0.0,      1.0,  0.0, // center of top
-     0.0,      1.0,  1.0,
-     invRad2,  1.0,  invRad2,
-     1.0,      1.0,  0.0,
-     invRad2,  1.0, -invRad2,
-     0.0,      1.0,  -1.0,
-    -invRad2,  1.0, -invRad2,
-    -1.0,      1.0,  0.0,
-    -invRad2,  1.0,  invRad2,
 
-    // bottom face  
-     0.0,     -1.0,  0.0, // center of bottom
-     0.0,     -1.0,  1.0,
-     invRad2, -1.0,  invRad2,
-     1.0,     -1.0,  0.0,
-     invRad2, -1.0, -invRad2,
-     0.0,     -1.0,  -1.0,
-    -invRad2, -1.0, -invRad2,
-    -1.0,     -1.0,  0.0,
-    -invRad2, -1.0,  invRad2,
-  ];
+  // Now pass the list of positions into WebGL to build the
+  // shape. We do this by creating a Float32Array from the
+  // JavaScript array, then use it to fill the current buffer.
+
+  const positions = sides.concat(topface.concat(bottom));
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // Build the element array buffer; this specifies the indices
   // into the vertex arrays for each face's vertices.
@@ -188,12 +176,6 @@ function initBuffers(gl) {
       indices = indices.concat(bottomIndex, bottomIndex + j, bottomIndex + 1 + (j % numSides));
   }
   
-  // Now pass the list of positions into WebGL to build the
-  // shape. We do this by creating a Float32Array from the
-  // JavaScript array, then use it to fill the current buffer.
-
-  const positions = sides.concat(topbottom);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // Now send the element array to GL
 
