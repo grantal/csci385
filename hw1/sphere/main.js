@@ -132,39 +132,25 @@ function initBuffers(gl, numSides) {
 
   // Now create an array of positions for the cylinder.
 
-  let sides = [];
-  let topface = [0.0,  1.0, 0.0];
-  let bottom =  [0.0, -1.0, 0.0];
+  let positions = [];
 
-  // This generates the positions of the cylinder
-  let lastx = 1.0; 
-  let lastz = 0.0;
-  for (let j = 1; j <= numSides; j++){
-    let rads = (j/numSides)*2*Math.PI;
-    let newx = Math.cos(rads); 
-    let newz = Math.sin(rads); 
-    // make one side face
-    let face = [
-    lastx,  1.0, lastz,
-    newx,   1.0, newz,
-    newx,  -1.0, newz,
-    lastx, -1.0, lastz,
-    ];
-    sides = sides.concat(face);
-    // add to top and bottom face
-    topface = topface.concat(lastx,  1.0, lastz);
-    bottom  =  bottom.concat(lastx, -1.0, lastz);
-
-    // set last variables 
-    lastx = newx;
-    lastz = newz;
+  // This generates the positions of the sphere
+  for (let j = 0; j <= numSides; j++){
+    let theta = (j/numSides)*2*Math.PI;
+    for (let k = 0; k <= numSides; k++){
+      let phi = (k/numSides)*Math.PI;
+      let newx = Math.sin(phi)*Math.cos(theta); 
+      let newy = Math.sin(phi)*Math.sin(theta); 
+      let newz = Math.cos(phi); 
+      // add this point of the sphere to postions
+      positions = positions.concat(newx, newy, newz);
+    }
   }
 
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
   // JavaScript array, then use it to fill the current buffer.
 
-  const positions = sides.concat(topface.concat(bottom));
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   // Build the element array buffer; this specifies the indices
@@ -179,23 +165,21 @@ function initBuffers(gl, numSides) {
 
   let indices = [];
 
-  // this generates the indices list assuming that postitions defines squares
-  // with the list order bottom left, bottom right, top right, top left
-  for (var j = 0; j < (sides.length / 12); ++j) {
-    let fourj = j * 4;
-    indices = indices.concat(fourj, fourj + 1, fourj + 2, fourj, fourj + 2, fourj + 3);
+  // The positons list is broken up into groups of vertices of size numSides + 1 where
+  // each group represents a single arc along the sphere
+  // this function makes triangles out of those vertices
+  let verts = positions.length / 3; 
+  for (var j = 0; j < ((positions.length / 3) - 0); ++j) {
+    // if the point is not the bottom of an arc
+    if (j % (numSides + 1) != 0){
+      // two triangles per point
+      indices = indices.concat(j, j - 1, ((j-1) + numSides) % verts);
+      indices = indices.concat(j, (j + numSides) % verts, ((j-1) + numSides) % verts);
+    }
   }
 
-  // generates indices for top and bottom since they are not squares
-  const sidesVerts = sides.length / 3; // number of vertices in sides
-  const bottomIndex = sidesVerts + numSides + 1 // index of the first bottom vert
-  for (var j = 0; j <= numSides; j++){
-      indices = indices.concat(sidesVerts, sidesVerts + j, sidesVerts + 1 + (j % numSides));
 
-      indices = indices.concat(bottomIndex, bottomIndex + j, bottomIndex + 1 + (j % numSides));
-  }
   
-
   // Now send the element array to GL
 
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
@@ -216,11 +200,11 @@ function initBuffers(gl, numSides) {
 
   var colors = [];
 
-  for (var j = 0; j < (positions.length / 4); ++j) {
+  for (var j = 0; j < (positions.length / 3); ++j) {
     const c = faceColors[j % 2];
 
-    // Repeat each color four times for the four vertices of the face
-    colors = colors.concat(c, c, c, c);
+    // Repeat each color three times for the three vertices of the face
+    colors = colors.concat(c, c, c);
   }
 
   const colorBuffer = gl.createBuffer();
