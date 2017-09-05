@@ -192,8 +192,8 @@ function initBuffers(gl, numSides) {
   // each face will be one of two colors and we'll alternate for each face
 
   const faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // first color: white
-    [1.0,  0.0,  0.0,  1.0],    // second color: red
+    [0.0,  0.0,  1.0,  1.0],    // first color: blue
+    [0.0,  1.0,  0.0,  1.0],    // second color: green
   ];
 
   // Convert the array of colors into a table for all the vertices.
