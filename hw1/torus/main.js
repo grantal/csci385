@@ -178,8 +178,6 @@ function initBuffers(gl, numSides) {
 
   let indices = [];
 
-  console.log(positions);
-
   // The positons list is broken up into groups of vertices of size numSides + 1 where
   // each group represents a single phi ring
   // this function makes triangles out of those vertices
@@ -190,23 +188,11 @@ function initBuffers(gl, numSides) {
       // two triangles per point
       indices = indices.concat(j, j - 1, ((j-1) + numSides) % verts);
       indices = indices.concat(j, (j + numSides) % verts, ((j-1) + numSides) % verts);
-
-      console.log(positions[j*3] + ', ' + positions[(j*3)+1] + ', ' + positions[(j*3)+2]);
-      let v = (j + numSides) % verts;
-      console.log(positions[v*3] + ', ' + positions[(v*3)+1] + ', ' + positions[(v*3)+2]);
     } else {
       // if it is the first, then the vertex below it will not be at j-1 but at j+(numSides-1)
       let belowVert = j + (numSides - 1);
       indices = indices.concat(j, belowVert , (belowVert + numSides) % verts);
       indices = indices.concat(j, (j + numSides) % verts, (belowVert + numSides) % verts);
-      /*
-      indices = indices.concat(j, (j + (2*numSides) - 1) % verts, (j + (2*numSides)-2) % verts);
-      console.log(positions[j*3] + ', ' + positions[(j*3)+1] + ', ' + positions[(j*3)+2]);
-      let v = (j + numSides) % verts;
-      console.log(positions[v*3] + ', ' + positions[(v*3)+1] + ', ' + positions[(v*3)+2]);
-      v = (j + (2*numSides)-2) % verts;
-      console.log(positions[v*3] + ', ' + positions[(v*3)+1] + ', ' + positions[(v*3)+2]);
-      */
     }
   }
 
@@ -223,7 +209,7 @@ function initBuffers(gl, numSides) {
 
   const faceColors = [
     [0.0,  0.0,  1.0,  1.0],    // first color: blue
-    [0.0,  1.0,  0.0,  1.0],    // second color: green
+    [1.0,  1.0,  1.0,  1.0],    // second color: white
   ];
 
   // Convert the array of colors into a table for all the vertices.
