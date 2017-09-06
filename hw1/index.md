@@ -12,3 +12,4 @@ All of my javascript code for this project is based off of a demo made by mozill
 - [Cube](cube/)
 - [Cylinder](cylinder/)
 - [Sphere](sphere/)
+- [Torus/Doughnut](torus/)
