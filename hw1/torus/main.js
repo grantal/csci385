@@ -130,25 +130,35 @@ function initBuffers(gl, numSides) {
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  // Now create an array of positions for the cylinder.
+  // Now create an array of positions for the torus.
 
   let positions = [];
 
-  // This generates the positions of the sphere
-  // I use spherical coordinates and just increment theta and phi
-  // and use those to calculate the x,y and z of the surface of the
-  // sphere
+  // This generates the positions of the torus
+  // theta will going around the inner ring of the torus
+  // while phi will be going around a bunch of rings on the surface 
+  // of the torus
+  // so each of phi's rings will have their center somewhere on theta's ring
   for (let j = 0; j < numSides; j++){
     let theta = (j/numSides)*2*Math.PI;
+    // basex and basez determine the position around the theta ring
+    let basex = Math.sin(theta);
+    let basez = Math.cos(theta);
     for (let k = 0; k <= numSides; k++){
-      let phi = (k/numSides)*Math.PI;
-      let newx = Math.sin(phi)*Math.cos(theta); 
-      let newy = Math.sin(phi)*Math.sin(theta); 
-      let newz = Math.cos(phi); 
+      let phi = (k/numSides)*2*Math.PI;
+      // here we find our position along the phi ring
+      // notice how x and z are calculated relative to the
+      // theta ring
+      // the 0.25 is the radius of the phi ring, the radius
+      // of the theta ring is 1
+      let newx = (Math.cos(phi)*basex*0.25)+basex; 
+      let newy = Math.sin(phi)*0.25; 
+      let newz = (Math.cos(phi)*basez*0.25)+basez; 
       // add this point of the sphere to postions
       positions = positions.concat(newx, newy, newz);
     }
   }
+
 
   // Now pass the list of positions into WebGL to build the
   // shape. We do this by creating a Float32Array from the
@@ -169,15 +179,25 @@ function initBuffers(gl, numSides) {
   let indices = [];
 
   // The positons list is broken up into groups of vertices of size numSides + 1 where
-  // each group represents a single arc along the sphere
+  // each group represents a single phi ring
   // this function makes triangles out of those vertices
   let verts = positions.length / 3; 
   for (var j = 0; j < ((positions.length / 3) - 0); ++j) {
-    // if the point is not the bottom of an arc
+    // if the point is not the first one in a phi ring
     if (j % (numSides + 1) != 0){
       // two triangles per point
       indices = indices.concat(j, j - 1, ((j-1) + numSides) % verts);
       indices = indices.concat(j, (j + numSides) % verts, ((j-1) + numSides) % verts);
+    } else {
+      // if it is the first, it needs to make a triangle below itself
+      /*
+      indices = indices.concat(j, (j + (2*numSides) - 1) % verts, (j + (2*numSides)-2) % verts);
+      console.log(positions[j*3] + ', ' + positions[(j*3)+1] + ', ' + positions[(j*3)+2]);
+      let v = (j + numSides) % verts;
+      console.log(positions[v*3] + ', ' + positions[(v*3)+1] + ', ' + positions[(v*3)+2]);
+      v = (j + (2*numSides)-2) % verts;
+      console.log(positions[v*3] + ', ' + positions[(v*3)+1] + ', ' + positions[(v*3)+2]);
+      */
     }
   }
 
