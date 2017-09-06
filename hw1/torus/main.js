@@ -144,7 +144,7 @@ function initBuffers(gl, numSides) {
     // basex and basez determine the position around the theta ring
     let basex = Math.sin(theta);
     let basez = Math.cos(theta);
-    for (let k = 0; k <= numSides; k++){
+    for (let k = 0; k < numSides; k++){
       let phi = (k/numSides)*2*Math.PI;
       // here we find our position along the phi ring
       // notice how x and z are calculated relative to the
@@ -178,18 +178,27 @@ function initBuffers(gl, numSides) {
 
   let indices = [];
 
+  console.log(positions);
+
   // The positons list is broken up into groups of vertices of size numSides + 1 where
   // each group represents a single phi ring
   // this function makes triangles out of those vertices
   let verts = positions.length / 3; 
   for (var j = 0; j < ((positions.length / 3) - 0); ++j) {
     // if the point is not the first one in a phi ring
-    if (j % (numSides + 1) != 0){
+    if (j % numSides != 0){
       // two triangles per point
       indices = indices.concat(j, j - 1, ((j-1) + numSides) % verts);
       indices = indices.concat(j, (j + numSides) % verts, ((j-1) + numSides) % verts);
+
+      console.log(positions[j*3] + ', ' + positions[(j*3)+1] + ', ' + positions[(j*3)+2]);
+      let v = (j + numSides) % verts;
+      console.log(positions[v*3] + ', ' + positions[(v*3)+1] + ', ' + positions[(v*3)+2]);
     } else {
-      // if it is the first, it needs to make a triangle below itself
+      // if it is the first, then the vertex below it will not be at j-1 but at j+(numSides-1)
+      let belowVert = j + (numSides - 1);
+      indices = indices.concat(j, belowVert , (belowVert + numSides) % verts);
+      indices = indices.concat(j, (j + numSides) % verts, (belowVert + numSides) % verts);
       /*
       indices = indices.concat(j, (j + (2*numSides) - 1) % verts, (j + (2*numSides)-2) % verts);
       console.log(positions[j*3] + ', ' + positions[(j*3)+1] + ', ' + positions[(j*3)+2]);
@@ -201,8 +210,6 @@ function initBuffers(gl, numSides) {
     }
   }
 
-
-  
   // Now send the element array to GL
 
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
