@@ -1,6 +1,8 @@
 var yRotation = 0.0;
 var xRotation = 0.0;
 
+
+
 main();
 
 //
@@ -64,52 +66,67 @@ function main() {
     },
   };
 
-  // Here's where we call the routine that builds all the
-  // objects we'll be drawing.
-  let buffers = initBuffers(gl, 8);
+  // This will handle the pgm file once it is loaded
+  function reqListener () {
+    // 2d array that will hold the data from the pgm
+    let pgmArray = [];
 
-  // this lets the arrow keys rotate the object
-  drawScene(gl, programInfo, buffers, 0.0, 0.0);
-  document.addEventListener('keydown', function rotateHandler(e){
-    xChange = 0.0;
-    yChange = 0.0;
-    switch (e.keyCode) {
-      case 37: // left
-        xChange = -0.1;
-        break;
-      case 38: // up
-        yChange = -0.1;
-        break;
-      case 39: // right
-        xChange = 0.1;
-        break;
-      case 40: // down
-        yChange = 0.1;
-        break;
-    }
-    drawScene(gl, programInfo, buffers, xChange, yChange);
-  }); 
+    let lines = this.responseText.split('\n')
+    // get width and length from 3rd line
+    let widthlength = lines[2].split(' ');
+    let pgmWidth = parseInt(widthlength[0]);
+    let pgmLength = parseInt(widthlength[1]);
+    // get Max Height
+    let pgmMaxHeight = parseInt(lines[3]);
 
-  // this makes it so that the slider adjusts the fineness
-  const slider = document.querySelector('#numSides');
-  const span = document.querySelector('#sideSpan');
-  // this gets it to display the number by the slider
-  let sliderMouseDown = false;
-  slider.addEventListener('mousedown', function sliderMouseDownListener(e){
-    sliderMouseDown = true;
-  });
-  slider.addEventListener('mousemove', function sliderMouseDownListener(e){
-    if (sliderMouseDown) {
-      span.innerHTML = e.target.value;
+    // loop through the lines
+    for(let j = 4; j < lines.length-1; j++){
+      let entries = lines[j].split(/\s+/);
+      // converts entries to ints
+      let row = [];
+      for(let k = 1; k < entries.length; k++){
+        row = row.concat(parseInt(entries[k]));
+      }
+      // add row to array 
+      pgmArray = pgmArray.concat([row]);
     }
-  });
-  // heres where it actually rerenders
-  slider.addEventListener('mouseup', function sliderReRender(e){
-    sliderMouseDown = false;
-    numSides = Number(e.target.value);
-    buffers = initBuffers(gl, numSides);
+      
+    // now that the pgm data is loaded, we can set up the rest of the scene
+
+    // Here's where we call the routine that builds all the
+    // objects we'll be drawing.
+    let buffers = initBuffers(gl, pgmArray, pgmWidth, pgmLength);
+
+    // this lets the arrow keys rotate the object
     drawScene(gl, programInfo, buffers, 0.0, 0.0);
-  });
+    document.addEventListener('keydown', function rotateHandler(e){
+      xChange = 0.0;
+      yChange = 0.0;
+      switch (e.keyCode) {
+        case 37: // left
+          xChange = -0.1;
+          break;
+        case 38: // up
+          yChange = -0.1;
+          break;
+        case 39: // right
+          xChange = 0.1;
+          break;
+        case 40: // down
+          yChange = 0.1;
+          break;
+      }
+      drawScene(gl, programInfo, buffers, xChange, yChange);
+    }); 
+  }
+
+  // get pgm file
+  var oReq = new XMLHttpRequest();
+  oReq.addEventListener("load", reqListener);
+  oReq.open("GET", "1979.pgm");
+  oReq.send();
+
+
 
 }
 
@@ -119,7 +136,7 @@ function main() {
 // Initialize the buffers we'll need. For this demo, we just
 // have one object -- a simple three-dimensional cylinder.
 //
-function initBuffers(gl, numSides) {
+function initBuffers(gl, pgmArray, pgmWidth, pgmLength) {
 
   // Create a buffer for the cylinder's vertex positions.
 
@@ -130,32 +147,14 @@ function initBuffers(gl, numSides) {
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  // Now create an array of positions for the torus.
+  // Now create an array of positions from the pgm.
 
   let positions = [];
-
-  // This generates the positions of the torus
-  // theta will going around the inner ring of the torus
-  // while phi will be going around a bunch of rings on the surface 
-  // of the torus
-  // so each of phi's rings will have their center somewhere on theta's ring
-  for (let j = 0; j < numSides; j++){
-    let theta = (j/numSides)*2*Math.PI;
-    // basex and basez determine the position around the theta ring
-    let basex = Math.sin(theta);
-    let basez = Math.cos(theta);
-    for (let k = 0; k < numSides; k++){
-      let phi = (k/numSides)*2*Math.PI;
-      // here we find our position along the phi ring
-      // notice how x and z are calculated relative to the
-      // theta ring
-      // the 0.25 is the radius of the phi ring, the radius
-      // of the theta ring is 1
-      let newx = (Math.cos(phi)*basex*0.25)+basex; 
-      let newy = Math.sin(phi)*0.25; 
-      let newz = (Math.cos(phi)*basez*0.25)+basez; 
-      // add this point of the sphere to postions
-      positions = positions.concat(newx, newy, newz);
+  // the x and z of a point will be it's row and column in the array
+  // the y will be the height at that point in the array
+  for (let j = 0; j < pgmArray.length; j++){
+    for (let k = 0; k < pgmArray[j].length; k++){
+      positions = positions.concat(j, pgmArray[j][k]/4, k); 
     }
   }
 
@@ -172,29 +171,30 @@ function initBuffers(gl, numSides) {
   const indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-
   let indices = [];
 
-  // The positons list is broken up into groups of vertices of size numSides + 1 where
-  // each group represents a single phi ring
-  // this function makes triangles out of those vertices
-  let verts = positions.length / 3; 
-  for (var j = 0; j < ((positions.length / 3) - 0); ++j) {
-    // if the point is not the first one in a phi ring
-    if (j % numSides != 0){
-      // two triangles per point
-      indices = indices.concat(j, j - 1, ((j-1) + numSides) % verts);
-      indices = indices.concat(j, (j + numSides) % verts, ((j-1) + numSides) % verts);
-    } else {
-      // if it is the first, then the vertex below it will not be at j-1 but at j+(numSides-1)
-      let belowVert = j + (numSides - 1);
-      indices = indices.concat(j, belowVert , (belowVert + numSides) % verts);
-      indices = indices.concat(j, (j + numSides) % verts, (belowVert + numSides) % verts);
+  // number of vertices defined by the array 'positions'
+  let points = positions.length / 3; 
+
+  // each point will connect to the eight points around it with 8 triangles
+  // but for each 'j' we will just define the two triangles to the top left 
+  // of the point
+  for (let j = 0; j < points; j++){
+    // I'll refer to 'j' as the point at index j
+    // if not on the left column
+    if (j % pgmWidth != 0){
+      // if not on the first row
+      if (j > pgmWidth){
+        // this adds two triangles,
+        // one is between the point above j and the point to the top left of j
+        // the other is between the top left one and the left one
+        indices = indices.concat(j, j - pgmWidth, (j - pgmWidth) - 1, 
+                                 j, j - 1,        (j - pgmWidth) - 1);
+      }
     }
   }
+
+  console.log(positions)
 
   // Now send the element array to GL
 
@@ -262,8 +262,8 @@ function drawScene(gl, programInfo, buffers, xChange, yChange) {
 
   const fieldOfView = 45 * Math.PI / 180;   // in radians
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-  const zNear = 0.1;
-  const zFar = 100.0;
+  const zNear = 1.0;
+  const zFar = 255.0;
   const projectionMatrix = mat4.create();
 
   // note: glmatrix.js always has the first argument
@@ -283,7 +283,7 @@ function drawScene(gl, programInfo, buffers, xChange, yChange) {
 
   mat4.translate(modelViewMatrix,     // destination matrix
                  modelViewMatrix,     // matrix to translate
-                 [-0.0, 0.0, -6.0]);  // amount to translate
+                 [-0.0, 0.0, -128.0]);  // amount to translate
   mat4.rotate(modelViewMatrix,  // destination matrix
               modelViewMatrix,  // matrix to rotate
               yRotation,        // amount to rotate in radians
