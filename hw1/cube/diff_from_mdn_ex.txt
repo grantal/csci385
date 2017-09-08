@@ -1,0 +1,68 @@
+This is the result of running
+diff webgl-demo.js ../webgl-demo.js
+where the first webgl-demo.js is my file and
+../webgl-demo.js is the unediting mdn example
+
+1,2c1
+< var yRotation = 0.0;
+< var xRotation = 0.0;
+---
+> var cubeRotation = 0.0;
+71,90c70,82
+<   drawScene(gl, programInfo, buffers, 0.0, 0.0);
+<   document.addEventListener('keydown', function rotateHandler(e){
+<     xChange = 0.0;
+<     yChange = 0.0;
+<     switch (e.keyCode) {
+<       case 37: // left
+<         xChange = -0.1;
+<         break;
+<       case 38: // up
+<         yChange = -0.1;
+<         break;
+<       case 39: // right
+<         xChange = 0.1;
+<         break;
+<       case 40: // down
+<         yChange = 0.1;
+<         break;
+<     }
+<     drawScene(gl, programInfo, buffers, xChange, yChange);
+<   }); 
+---
+>   var then = 0;
+> 
+>   // Draw the scene repeatedly
+>   function render(now) {
+>     now *= 0.001;  // convert to seconds
+>     const deltaTime = now - then;
+>     then = now;
+> 
+>     drawScene(gl, programInfo, buffers, deltaTime);
+> 
+>     requestAnimationFrame(render);
+>   }
+>   requestAnimationFrame(render);
+217,222c209
+< function drawScene(gl, programInfo, buffers, xChange, yChange) {
+<   // Update the rotation
+< 
+<   yRotation += yChange;
+<   xRotation += xChange;
+< 
+---
+> function drawScene(gl, programInfo, buffers, deltaTime) {
+265,266c252,253
+<               yRotation,        // amount to rotate in radians
+<               [1, 0, 0]);       // axis to rotate around (Y)
+---
+>               cubeRotation,     // amount to rotate in radians
+>               [0, 0, 1]);       // axis to rotate around (Z)
+269c256
+<               xRotation,// amount to rotate in radians
+---
+>               cubeRotation * .7,// amount to rotate in radians
+336a324,326
+>   // Update the rotation for the next draw
+> 
+>   cubeRotation += deltaTime;
