@@ -16,6 +16,12 @@ var transformMatrix = mat4.create();
 // that code is in index.html under the vertex shader
 var matrixLocation;
 
+// similarly, this will hold the color location
+var colorLoc;
+
+// this will hold the color
+var color = vec4.fromValues(1.0, 0.0, 0.0, 1.0);
+
 window.onload = function init()
 {
     canvas = document.getElementById( "gl-canvas" );
@@ -61,6 +67,8 @@ window.onload = function init()
     gl.enableVertexAttribArray( vPosition );
 
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
+
+    colorLoc = gl.getUniformLocation(program, "vColor");
 
     render();
 };
@@ -136,6 +144,7 @@ function glPopMatrix(){
 function RTRI(){
     // makes it so it will get transformed by transformMatrix
     gl.uniformMatrix4fv(matrixLocation, false, transformMatrix);
+    gl.uniform4fv(colorLoc, color);
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
 }
 
