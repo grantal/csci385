@@ -1,13 +1,19 @@
 "use strict";
 
+var canvas;
 var gl;
-var points;
 
-var NumPoints = 5000;
+var points = [];
+
+var NumTimesToSubdivide = 5;
+
+var transformStack = [];
+
+var matrixLocation;
 
 window.onload = function init()
 {
-    var canvas = document.getElementById( "gl-canvas" );
+    canvas = document.getElementById( "gl-canvas" );
 
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
@@ -16,35 +22,15 @@ window.onload = function init()
     //  Initialize our data for the Sierpinski Gasket
     //
 
-    // First, initialize the corners of our gasket with three points.
+    // First, initialize the corners of our triangle with three points.
 
     var vertices = [
-        vec2( -1, -1 ),
-        vec2(  0,  1 ),
-        vec2(  1, -1 )
+        vec2( 0, 0),
+        vec2( 0, 1),
+        vec2( 1, 0)
     ];
 
-    // Specify a starting point p for our iterations
-    // p must lie inside any set of three vertices
-
-    var u = add( vertices[0], vertices[1] );
-    var v = add( vertices[0], vertices[2] );
-    var p = scale( 0.25, add( u, v ) );
-
-    // And, add our initial point into our array of points
-
-    points = [ p ];
-
-    // Compute new points
-    // Each new point is located midway between
-    // last point and a randomly chosen vertex
-
-    for ( var i = 0; points.length < NumPoints; ++i ) {
-        var j = Math.floor(Math.random() * 3);
-        p = add( points[i], vertices[j] );
-        p = scale( 0.5, p );
-        points.push( p );
-    }
+    triangle(vertices[0], vertices[1], vertices[2]);
 
     //
     //  Configure WebGL
@@ -69,11 +55,81 @@ window.onload = function init()
     gl.vertexAttribPointer( vPosition, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
 
+    matrixLocation = gl.getUniformLocation(program, "u_matrix");
+
     render();
 };
 
-
-function render() {
-    gl.clear( gl.COLOR_BUFFER_BIT );
-    gl.drawArrays( gl.POINTS, 0, points.length );
+function triangle( a, b, c )
+{
+    points.push( a, b, c );
 }
+
+// translates matrix by x, y, z
+// https://en.wikipedia.org/wiki/Translation_(geometry)#Matrix_representation
+function glTranslatef(x, y, z){
+  let matrix = mat4(
+      [1, 0, 0, x],
+      [0, 1, 0, y],
+      [0, 0, 1, z],
+      [0, 0, 0, 1]
+  );
+  let m2 = transformStack.pop(); 
+  transformStack.push(mult(m2, matrix));
+  console.log(transformStack);
+}
+
+// adds an identity matrix to the stack
+function glPushMatrix(){
+  transformStack.push(mat4());
+}
+
+// rotates around the z axis
+// https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations
+function glRotatef(theta){
+  let matrix = mat4(
+      [Math.cos(theta), -Math.sin(theta), 0, 0],
+      [Math.sin(theta),  Math.cos(theta), 0, 0],
+      [              0,                0, 1, 0],
+      [              0,                0, 0, 1]
+  );
+  // multiply it with the top stack item
+  let m2 = transformStack.pop(); 
+  transformStack.push(mult(m2, matrix));
+  console.log(transformStack);
+}
+
+
+
+// draws a right triangle
+function RTRI(){
+    // makes it so it will get transformed by the next thing on the stack
+    let matrix = transformStack.pop()
+    gl.uniformMatrix4fv(matrixLocation, false, flatten(matrix));
+    gl.drawArrays( gl.TRIANGLES, 0, points.length );
+}
+
+// draws a square
+function BOX(){
+    
+}
+
+function render(program)
+{
+    gl.clear( gl.COLOR_BUFFER_BIT );
+    glPushMatrix(); // this initializes the transformation matrix to the 
+                // identity matrix
+
+    glTranslatef(-1.0, -1.0, 0.0);
+    RTRI();
+
+
+    glPushMatrix(); // this initializes the transformation matrix to the 
+
+    glRotatef(Math.PI);
+    RTRI();
+}
+
+
+// Sources:
+// https://github.com/greggman/webgl-fundamentals/blob/master/webgl/webgl-2d-geometry-matrix-transform-with-projection.html

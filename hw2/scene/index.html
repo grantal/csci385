@@ -2,16 +2,19 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<title>2D Sierpinski Gasket</title>
+<title>Scene</title>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec4 vPosition;
 
-void
-main()
+uniform mat4 u_matrix;
+
+void main()
 {
 	gl_PointSize = 1.0;
-    gl_Position = vPosition;
+  //gl_Position = vPosition;
+  // Multiply the position by the matrix.
+  gl_Position = vec4(vPosition * u_matrix);
 }
 </script>
 
@@ -21,13 +24,13 @@ precision mediump float;
 void
 main()
 {
-    gl_FragColor = vec4( 1.0, 0.0, 0.0, 1.0 );
+    gl_FragColor = vec4( 0.0, 0.0, 0.0, 1.0 );
 }
 </script>
 
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
-<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="../Common/MVnew.js"></script>
 <script type="text/javascript" src="main.js"></script>
 </head>
 
