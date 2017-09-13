@@ -5,10 +5,15 @@ var gl;
 
 var points = [];
 
-var NumTimesToSubdivide = 5;
-
+// stack of transformation matrices
 var transformStack = [];
 
+// the matrix that will multiply the location
+var transformMatrix = mat4();
+
+// this is gonna hold the location of the "uniform matrix"
+// which will multiply the postition vector 
+// that code is in index.html under the vertex shader
 var matrixLocation;
 
 window.onload = function init()
@@ -74,14 +79,8 @@ function glTranslatef(x, y, z){
       [0, 0, 1, z],
       [0, 0, 0, 1]
   );
-  let m2 = transformStack.pop(); 
-  transformStack.push(mult(m2, matrix));
-  console.log(transformStack);
-}
-
-// adds an identity matrix to the stack
-function glPushMatrix(){
-  transformStack.push(mat4());
+  // multiply the transform matrix by the matrix we just made
+  transformMatrix = mult(transformMatrix, matrix);
 }
 
 // rotates around the z axis
@@ -93,41 +92,65 @@ function glRotatef(theta){
       [              0,                0, 1, 0],
       [              0,                0, 0, 1]
   );
-  // multiply it with the top stack item
-  let m2 = transformStack.pop(); 
-  transformStack.push(mult(m2, matrix));
-  console.log(transformStack);
+  // multiply the transform matrix by the matrix we just made
+  transformMatrix = mult(transformMatrix, matrix);
 }
 
+// scales matrix by x, y, z
+// we went over this one in class
+function glScalef(x, y, z){
+  let matrix = mat4(
+      [x, 0, 0, 0],
+      [0, y, 0, 0],
+      [0, 0, z, 0],
+      [0, 0, 0, 1]
+  );
+  // multiply the transform matrix by the matrix we just made
+  transformMatrix = mult(transformMatrix, matrix);
+}
 
+// adds transformMatrix to the stack
+function glPushMatrix(){
+  transformStack.push(transformMatrix);
+}
+
+// sets transformMatrix to the stop of the stack
+// and pops the top off
+function glPopMatrix(){
+  transformMatrix = transformStack.pop();
+}
 
 // draws a right triangle
 function RTRI(){
-    // makes it so it will get transformed by the next thing on the stack
-    let matrix = transformStack.pop()
-    gl.uniformMatrix4fv(matrixLocation, false, flatten(matrix));
+    // the flatten function doesn't just return the flattened matrix,
+    // it actually makes transform
+    // makes it so it will get transformed by transformMatrix
+    gl.uniformMatrix4fv(matrixLocation, false, flatten(transformMatrix));
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
 }
 
 // draws a square
 function BOX(){
-    
+  RTRI();
+  glPushMatrix();
+  glRotatef(Math.PI);
+  glTranslatef(1.0, 1.0, 0.0);
+  RTRI();
+  glPopMatrix();
+}
+
+// draws a rectangle
+function RECT(){
+  glPushMatrix();
+  BOX();
+  glPopMatrix();
 }
 
 function render(program)
 {
-    gl.clear( gl.COLOR_BUFFER_BIT );
-    glPushMatrix(); // this initializes the transformation matrix to the 
-                // identity matrix
-
-    glTranslatef(-1.0, -1.0, 0.0);
-    RTRI();
-
-
-    glPushMatrix(); // this initializes the transformation matrix to the 
-
-    glRotatef(Math.PI);
-    RTRI();
+  gl.clear( gl.COLOR_BUFFER_BIT );
+  console.log(transformMatrix);
+  BOX();
 }
 
 
