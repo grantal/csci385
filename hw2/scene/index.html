@@ -14,7 +14,7 @@ void main()
 	gl_PointSize = 1.0;
   //gl_Position = vPosition;
   // Multiply the position by the matrix.
-  gl_Position = vec4(vPosition * u_matrix);
+  gl_Position = vec4(u_matrix * vPosition);
 }
 </script>
 
@@ -31,6 +31,7 @@ main()
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MVnew.js"></script>
+<script type="text/javascript" src="gl-matrix-min.js"></script>
 <script type="text/javascript" src="main.js"></script>
 </head>
 

@@ -9,7 +9,7 @@ var points = [];
 var transformStack = [];
 
 // the matrix that will multiply the location
-var transformMatrix = mat4();
+var transformMatrix = mat4.create();
 
 // this is gonna hold the location of the "uniform matrix"
 // which will multiply the postition vector 
@@ -30,9 +30,9 @@ window.onload = function init()
     // First, initialize the corners of our triangle with three points.
 
     var vertices = [
-        vec2( 0, 0),
-        vec2( 0, 1),
-        vec2( 1, 0)
+        vec2.fromValues( 0, 0),
+        vec2.fromValues( 0, 1),
+        vec2.fromValues( 1, 0)
     ];
 
     triangle(vertices[0], vertices[1], vertices[2]);
@@ -73,19 +73,25 @@ function triangle( a, b, c )
 // translates matrix by x, y, z
 // https://en.wikipedia.org/wiki/Translation_(geometry)#Matrix_representation
 function glTranslatef(x, y, z){
+  /*
   let matrix = mat4(
       [1, 0, 0, x],
       [0, 1, 0, y],
       [0, 0, 1, z],
       [0, 0, 0, 1]
   );
+  */
   // multiply the transform matrix by the matrix we just made
-  transformMatrix = mult(transformMatrix, matrix);
+  //transformMatrix = mult(transformMatrix, matrix);
+  let d = vec3.fromValues(x,y,z);
+  mat4.translate(transformMatrix, transformMatrix, d);
+  //transformMatrix = translate(transformMatrix, d);
 }
 
 // rotates around the z axis
 // https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations
 function glRotatef(theta){
+  /*
   let matrix = mat4(
       [Math.cos(theta), -Math.sin(theta), 0, 0],
       [Math.sin(theta),  Math.cos(theta), 0, 0],
@@ -94,11 +100,14 @@ function glRotatef(theta){
   );
   // multiply the transform matrix by the matrix we just made
   transformMatrix = mult(transformMatrix, matrix);
+  */
+  mat4.rotateZ(transformMatrix, transformMatrix, theta)
 }
 
 // scales matrix by x, y, z
 // we went over this one in class
 function glScalef(x, y, z){
+  /*
   let matrix = mat4(
       [x, 0, 0, 0],
       [0, y, 0, 0],
@@ -107,6 +116,9 @@ function glScalef(x, y, z){
   );
   // multiply the transform matrix by the matrix we just made
   transformMatrix = mult(transformMatrix, matrix);
+  */
+  let d = vec3.fromValues(x,y,z);
+  mat4.scale(transformMatrix, transformMatrix, d);
 }
 
 // adds transformMatrix to the stack
@@ -122,10 +134,8 @@ function glPopMatrix(){
 
 // draws a right triangle
 function RTRI(){
-    // the flatten function doesn't just return the flattened matrix,
-    // it actually makes transform
     // makes it so it will get transformed by transformMatrix
-    gl.uniformMatrix4fv(matrixLocation, false, flatten(transformMatrix));
+    gl.uniformMatrix4fv(matrixLocation, false, transformMatrix);
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
 }
 
@@ -133,8 +143,8 @@ function RTRI(){
 function BOX(){
   RTRI();
   glPushMatrix();
-  glRotatef(Math.PI);
   glTranslatef(1.0, 1.0, 0.0);
+  glRotatef(Math.PI);
   RTRI();
   glPopMatrix();
 }
@@ -142,6 +152,7 @@ function BOX(){
 // draws a rectangle
 function RECT(){
   glPushMatrix();
+  glScalef(0.5,1.0,1.0);
   BOX();
   glPopMatrix();
 }
@@ -149,8 +160,9 @@ function RECT(){
 function render(program)
 {
   gl.clear( gl.COLOR_BUFFER_BIT );
-  console.log(transformMatrix);
-  BOX();
+  //glScalef(0.5,0.5,0.0);
+  glTranslatef(-0.5,-0.5,0.0);
+  RECT();
 }
 
 
