@@ -121,12 +121,12 @@ function glScalef(x, y, z){
   mat4.scale(transformMatrix, transformMatrix, d);
 }
 
-// adds transformMatrix to the stack
+// adds copy of transformMatrix to the stack
 function glPushMatrix(){
-  transformStack.push(transformMatrix);
+  transformStack.push(mat4.clone(transformMatrix));
 }
 
-// sets transformMatrix to the stop of the stack
+// sets transformMatrix to the top of the stack
 // and pops the top off
 function glPopMatrix(){
   transformMatrix = transformStack.pop();
@@ -162,7 +162,13 @@ function render(program)
   gl.clear( gl.COLOR_BUFFER_BIT );
   //glScalef(0.5,0.5,0.0);
   glTranslatef(-0.5,-0.5,0.0);
+  console.log(transformMatrix);
   RECT();
+  console.log(transformMatrix);
+  glTranslatef(0.25,1.3,0.0);
+  glRotatef(5*(Math.PI/4));
+  glScalef(0.5,0.5,1.0);
+  RTRI();
 }
 
 
