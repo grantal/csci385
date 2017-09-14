@@ -8,3 +8,4 @@ title: "Homework 2"
 ## Scenes
 
 - [scene](scene/)
+- [Sierpinski Carpet](carpet/)
