@@ -4,6 +4,9 @@
 // I also used this as a reference for how to transform stuff:
 // https://github.com/greggman/webgl-fundamentals/blob/master/webgl/webgl-2d-geometry-matrix-transform-with-projection.html
 // I also read parts of Chapter 4 of Angel's book.
+// since I based my code off of a sierpinski's triangle example, I made a sierpinski's carpet
+// I also used this:
+// https://en.wikipedia.org/wiki/Sierpinski_carpet
 "use strict";
 
 var canvas;
@@ -129,51 +132,43 @@ function BOX(){
   glPopMatrix();
 }
 
-// draws a rectangle
-function RECT(){
+// gives the value for x and y for each of the 8 surrouding boxes on
+// each level of the carpet
+var carpetxy = [
+ [-1,  1], [0,  1], [1,  1],
+ [-1,  0],          [1,  0],
+ [-1, -1], [0, -1], [1, -1],
+];
+
+// recursive function that makes the carpet
+function carpet(levels, maxLevels){
+  if (levels > maxLevels){
+    return 0;
+  }
   glPushMatrix();
-  glScalef(0.5,1.0,1.0);
+  glTranslatef(-0.5, -0.5, 0.0);
   BOX();
   glPopMatrix();
+  // recurse on the 8 surrounding boxes
+  for (let i = 0; i < 8; i++){
+    glPushMatrix();
+    glTranslatef(carpetxy[i][0], carpetxy[i][1], 0.0);    
+    glScalef((1/3), (1/3), 1.0);
+    //BOX();
+    carpet(levels+1, maxLevels);
+    glPopMatrix();
+  }
 }
 
 function render(program)
 {
   gl.clear( gl.COLOR_BUFFER_BIT );
-  // make the ground
-  glPushMatrix();
-  glTranslatef(1.0,-1.0,0.0);
-  glScalef(2.0,1.0,1.0);
-  glRotatef(Math.PI/2);
-  color = vec4.fromValues(0.1, 0.1, 0.1, 1.0);
-  RECT();
-  glPopMatrix();
-
-  // make the building
-  glPushMatrix();
-  glScalef(1.5,1.5,1.0);
-  glTranslatef(-0.25,-0.5,0.0);
-  color = vec4.fromValues(0.3, 0.3, 0.3, 1.0);
-  RECT();
-  glPopMatrix();
-
-  // make the windows
-  glPushMatrix();
-  color = vec4.fromValues(0.8, 0.8, 0.1, 1.0);
-  glScalef(0.2,0.2,1.0);
-  glTranslatef(-2.25,2.5,0.0);
-  // this makes each row of windows 
-  for (let j = 0; j < 5; j++){
-    glPushMatrix();
-    // this makes each individual window
-    for (let i = 0; i < 4; i++){
-      glTranslatef(0.8,0.0,0.0);
-      RECT();
-    }
-    glPopMatrix();
-    glTranslatef(0.0,-1.5,0.0);
-  }
-
+  // make the boxes white
+  color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
+  // the default size of box is too big
+  glScalef(0.66,0.66,1.0);
+  let maxLevels = 6;
+  carpet(1, maxLevels);
 }
 
 
