@@ -47,7 +47,8 @@ window.onload = function init()
     //  Configure WebGL
     //
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+    // make the background dark blue
+    gl.clearColor( 0.0, 0.0, 0.2, 1.0 );
 
     //  Load shaders and initialize attribute buffers
 
@@ -169,15 +170,40 @@ function RECT(){
 function render(program)
 {
   gl.clear( gl.COLOR_BUFFER_BIT );
-  //glScalef(0.5,0.5,0.0);
-  glTranslatef(-0.5,-0.5,0.0);
-  console.log(transformMatrix);
+  // make the ground
+  glPushMatrix();
+  glTranslatef(1.0,-1.0,0.0);
+  glScalef(2.0,1.0,1.0);
+  glRotatef(Math.PI/2);
+  color = vec4.fromValues(0.1, 0.1, 0.1, 1.0);
   RECT();
-  console.log(transformMatrix);
-  glTranslatef(0.25,1.3,0.0);
-  glRotatef(5*(Math.PI/4));
-  glScalef(0.5,0.5,1.0);
-  RTRI();
+  glPopMatrix();
+
+  // make the building
+  glPushMatrix();
+  glScalef(1.5,1.5,1.0);
+  glTranslatef(-0.25,-0.5,0.0);
+  color = vec4.fromValues(0.3, 0.3, 0.3, 1.0);
+  RECT();
+  glPopMatrix();
+
+  // make the windows
+  glPushMatrix();
+  color = vec4.fromValues(0.8, 0.8, 0.1, 1.0);
+  glScalef(0.2,0.2,1.0);
+  glTranslatef(-2.25,2.5,0.0);
+  // this makes each row of windows 
+  for (let j = 0; j < 5; j++){
+    glPushMatrix();
+    // this makes each individual window
+    for (let i = 0; i < 4; i++){
+      glTranslatef(0.8,0.0,0.0);
+      RECT();
+    }
+    glPopMatrix();
+    glTranslatef(0.0,-1.5,0.0);
+  }
+
 }
 
 
