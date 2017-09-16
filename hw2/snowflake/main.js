@@ -119,15 +119,6 @@ function REG(){
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
 }
 
-
-// gives the value for x and y for each of the 8 surrouding boxes on
-// each level of the carpet
-var carpetxy = [
- [-1,  1], [0,  1], [1,  1],
- [-1,  0],          [1,  0],
- [-1, -1], [0, -1], [1, -1],
-];
-
 // recursive function that makes a toothed edge of the snowflake
 function snowflake(levels, maxLevels){
   if (levels > maxLevels){
