@@ -7,5 +7,6 @@ title: "Homework 2"
 
 ## Scenes
 
-- [scene](scene/)
+- [Building (Simple Drawing)](scene/)
 - [Sierpinski Carpet](carpet/)
+- [Koch Snowflake](snowflake/)
