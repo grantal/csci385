@@ -1,12 +1,5 @@
-// So this is a heavily modified version of this file:
-// https://github.com/esangel/WebGL/blob/master/Chap2/gasket2.js
-// which is an example from Angel's "Interactive Computer Graphics"
-// I also used this as a reference for how to transform stuff:
-// https://github.com/greggman/webgl-fundamentals/blob/master/webgl/webgl-2d-geometry-matrix-transform-with-projection.html
-// I also read parts of Chapter 4 of Angel's book.
-// since I based my code off of a sierpinski's triangle example, I made a sierpinski's carpet
-// I also used this:
-// https://en.wikipedia.org/wiki/Sierpinski_carpet
+// I used this page:
+// https://en.wikipedia.org/wiki/Koch_snowflake
 "use strict";
 
 var canvas;
@@ -31,6 +24,10 @@ var colorLoc;
 // this will hold the color
 var color = vec4.fromValues(1.0, 0.0, 0.0, 1.0);
 
+// approximately the square root of 3 over 2
+const rad3o2 = 0.86602540378;
+
+
 window.onload = function init()
 {
     canvas = document.getElementById( "gl-canvas" );
@@ -41,9 +38,9 @@ window.onload = function init()
     // First, initialize the corners of our triangle with three points.
 
     var vertices = [
-        vec2.fromValues( 0, 0),
-        vec2.fromValues( 0, 1),
-        vec2.fromValues( 1, 0)
+        vec2.fromValues( 0.0, 0.0),
+        vec2.fromValues( 0.5, rad3o2),
+        vec2.fromValues( 1.0, 0.0)
     ];
 
     triangle(vertices[0], vertices[1], vertices[2]);
@@ -114,23 +111,14 @@ function glPopMatrix(){
   transformMatrix = transformStack.pop();
 }
 
-// draws a right triangle
-function RTRI(){
+// draws a regular triangle
+function REG(){
     // makes it so it will get transformed by transformMatrix
     gl.uniformMatrix4fv(matrixLocation, false, transformMatrix);
     gl.uniform4fv(colorLoc, color);
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
 }
 
-// draws a square
-function BOX(){
-  RTRI();
-  glPushMatrix();
-  glTranslatef(1.0, 1.0, 0.0);
-  glRotatef(Math.PI);
-  RTRI();
-  glPopMatrix();
-}
 
 // gives the value for x and y for each of the 8 surrouding boxes on
 // each level of the carpet
@@ -140,35 +128,77 @@ var carpetxy = [
  [-1, -1], [0, -1], [1, -1],
 ];
 
-// recursive function that makes the carpet
-function carpet(levels, maxLevels){
+// recursive function that makes a toothed edge of the snowflake
+function snowflake(levels, maxLevels){
   if (levels > maxLevels){
     return 0;
   }
+  REG();
+  // recurse on the other 4 toothed edges
   glPushMatrix();
-  glTranslatef(-0.5, -0.5, 0.0);
-  BOX();
+  // edges are on third the size
+  glScalef((1/3),(1/3),1.0);
+
+  // edge to the left of this edge
+  glPushMatrix();
+  glTranslatef(-1.9, 0.0, 0.0);
+  snowflake(levels+1, maxLevels);
   glPopMatrix();
-  // recurse on the 8 surrounding boxes
-  for (let i = 0; i < 8; i++){
-    glPushMatrix();
-    glTranslatef(carpetxy[i][0], carpetxy[i][1], 0.0);    
-    glScalef((1/3), (1/3), 1.0);
-    //BOX();
-    carpet(levels+1, maxLevels);
-    glPopMatrix();
-  }
+
+  // edge on the left side of the triangle
+  glPushMatrix();
+  glRotatef(Math.PI/3);
+  glTranslatef(1.0, 0.0, 0.0);
+  snowflake(levels+1, maxLevels);
+  glPopMatrix();
+
+  // edge on the right side of the triangle
+  glPushMatrix();
+  glTranslatef(3.0, 0.0, 0.0);
+  glRotatef(-(Math.PI/3));
+  glTranslatef(-2.0, 0.0, 0.0);
+  snowflake(levels+1, maxLevels);
+  glPopMatrix();
+
+  // edge to the right of this edge
+  glPushMatrix();
+  glTranslatef(3.9, 0.0, 0.0);
+  snowflake(levels+1, maxLevels);
+  glPopMatrix();
+  glPopMatrix();
 }
 
 function render(program)
 {
   gl.clear( gl.COLOR_BUFFER_BIT );
-  // make the boxes white
+  // make the snowflake white
   color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
-  // the default size of box is too big
-  glScalef(0.66,0.66,1.0);
+  // levels of recursion
   let maxLevels = 6;
-  carpet(1, maxLevels);
+
+  // make first level big and centered
+  //glScalef(1.5, 1.5, 1.0);
+  glTranslatef(-0.5, -(rad3o2 / 3), 0.0);
+  REG();
+
+  glScalef((1/3),(1/3),1.0);
+  // make the left side of the triangle
+  glRotatef(Math.PI/3);
+  glTranslatef(1.0, 0.0, 0.0);
+  snowflake(1, maxLevels);
+
+  //make the right side of the triangle
+  glTranslatef(2.0, 0.0, 0.0);
+  glRotatef((-2)*(Math.PI/3));
+  glTranslatef(1.0, 0.0, 0.0);
+  snowflake(1, maxLevels);
+
+  //make the bottom side of the triangle
+  glTranslatef(2.0, 0.0, 0.0);
+  glRotatef((-2)*(Math.PI/3));
+  glTranslatef(1.0, 0.0, 0.0);
+  snowflake(1, maxLevels);
+
 }
 
 
