@@ -1,5 +1,3 @@
-// I used this page:
-// https://en.wikipedia.org/wiki/Koch_snowflake
 "use strict";
 
 var canvas;
@@ -24,10 +22,6 @@ var colorLoc;
 // this will hold the color
 var color = vec4.fromValues(1.0, 0.0, 0.0, 1.0);
 
-// approximately the square root of 3 over 2
-const rad3o2 = 0.86602540378;
-
-
 window.onload = function init()
 {
     canvas = document.getElementById( "gl-canvas" );
@@ -39,7 +33,7 @@ window.onload = function init()
 
     var vertices = [
         vec2.fromValues( 0.0, 0.0),
-        vec2.fromValues( 0.5, rad3o2),
+        vec2.fromValues( 0.0, 1.0),
         vec2.fromValues( 1.0, 0.0)
     ];
 
@@ -52,7 +46,7 @@ window.onload = function init()
     //
     gl.viewport( 0, 0, canvas.width, canvas.height );
     // make the background dark blue
-    gl.clearColor( 0.0, 0.0, 0.2, 1.0 );
+    gl.clearColor(1.0, 1.0, 1.0, 1.0 );
 
     //  Load shaders and initialize attribute buffers
 
@@ -111,85 +105,90 @@ function glPopMatrix(){
   transformMatrix = transformStack.pop();
 }
 
-// draws a regular triangle
-function REG(){
+// draws a right triangle
+function RTRI(){
     // makes it so it will get transformed by transformMatrix
     gl.uniformMatrix4fv(matrixLocation, false, transformMatrix);
     gl.uniform4fv(colorLoc, color);
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
 }
 
-// recursive function that makes a toothed edge of the snowflake
-function snowflake(levels, maxLevels){
-  if (levels > maxLevels){
+// draws a square
+function BOX(){
+  RTRI();
+  glPushMatrix();
+  glTranslatef(1.0, 1.0, 0.0);
+  glRotatef(Math.PI);
+  RTRI();
+  glPopMatrix();
+}
+
+// draws a branch
+function BRANCH(){
+  glPushMatrix();
+  glScalef(0.12,1.0,1.0);
+  // make the branches brown
+  color = vec4.fromValues(0.35, 0.2, 0.15, 1.0);
+  BOX();
+  glPopMatrix();
+}
+
+//draws a leaf centered on the y axis
+function LEAF(){
+  color = vec4.fromValues(0.0, 0.9, 0.15, 1.0);
+  glScalef(1.0,2.0,1.0);
+  RTRI();
+  glRotatef(Math.PI/2);
+  RTRI();
+}
+
+// drawns the fern
+function fern(levels){
+  if (levels <= 0){
+    LEAF();
     return 0;
   }
-  REG();
-  // recurse on the other 4 toothed edges
-  glPushMatrix();
-  // edges are on third the size
-  glScalef((1/3),(1/3),1.0);
+  // main branch
+  BRANCH();
 
-  // edge to the left of this edge
+  // scale other branches down
   glPushMatrix();
-  glTranslatef(-1.9, 0.0, 0.0);
-  snowflake(levels+1, maxLevels);
+  glScalef(0.5, 0.5, 1.0);
+
+
+  // make top branch
+  glPushMatrix();
+  glTranslatef(0.075, 1.95, 0.0);
+  glRotatef(Math.PI/8);
+  fern(levels - 1);
   glPopMatrix();
 
-  // edge on the left side of the triangle
+  // make left branch
   glPushMatrix();
+  glTranslatef(0.0, 0.6, 0.0);
   glRotatef(Math.PI/3);
-  glTranslatef(1.0, 0.0, 0.0);
-  snowflake(levels+1, maxLevels);
+  fern(levels - 1);
   glPopMatrix();
 
-  // edge on the right side of the triangle
+  // make right branch
   glPushMatrix();
-  glTranslatef(3.0, 0.0, 0.0);
-  glRotatef(-(Math.PI/3));
-  glTranslatef(-2.0, 0.0, 0.0);
-  snowflake(levels+1, maxLevels);
+  glTranslatef(0.1, 1.2, 0.0);
+  glRotatef(-Math.PI/3);
+  fern(levels - 1);
   glPopMatrix();
 
-  // edge to the right of this edge
-  glPushMatrix();
-  glTranslatef(3.9, 0.0, 0.0);
-  snowflake(levels+1, maxLevels);
-  glPopMatrix();
+  // scale back up
   glPopMatrix();
 }
 
 function render(program)
 {
   gl.clear( gl.COLOR_BUFFER_BIT );
-  // make the snowflake white
-  color = vec4.fromValues(1.0, 1.0, 1.0, 1.0);
   // levels of recursion
   let maxLevels = 6;
-
-  // make first level big and centered
-  //glScalef(1.5, 1.5, 1.0);
-  glTranslatef(-0.5, -(rad3o2 / 3), 0.0);
-  REG();
-
-  glScalef((1/3),(1/3),1.0);
-  // make the left side of the triangle
-  glRotatef(Math.PI/3);
-  glTranslatef(1.0, 0.0, 0.0);
-  snowflake(1, maxLevels);
-
-  //make the right side of the triangle
-  glTranslatef(2.0, 0.0, 0.0);
-  glRotatef((-2)*(Math.PI/3));
-  glTranslatef(1.0, 0.0, 0.0);
-  snowflake(1, maxLevels);
-
-  //make the bottom side of the triangle
-  glTranslatef(2.0, 0.0, 0.0);
-  glRotatef((-2)*(Math.PI/3));
-  glTranslatef(1.0, 0.0, 0.0);
-  snowflake(1, maxLevels);
-
+  //put the fern down
+  glTranslatef(-0.2, -1.0, 0.0);
+  fern(maxLevels);
 }
 
 
