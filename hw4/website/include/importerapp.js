@@ -1,5 +1,4 @@
-ImporterApp = function () {
-  this.viewer = null;
+ImporterApp = function () { this.viewer = null;
   this.fileNames = null;
   this.inGenerate = false;
   this.dialog = null;
@@ -37,7 +36,7 @@ ImporterApp.prototype.Init = function () {
   importerButtons.AddButton('images/back.png', 'Set Up Vector (-Y)', () => { myThis.SetNamedView('-y'); });
   importerButtons.AddButton('images/left.png', 'Set Up Vector (X)', () => { myThis.SetNamedView('x'); });
   importerButtons.AddButton('images/right.png', 'Set Up Vector (-X)', () => { myThis.SetNamedView('-x'); });
-  importerButtons.AddButton('images/camera.png', 'Export PostScript file', () => { alert('click!'); });
+  importerButtons.AddButton('images/camera.png', 'Export PostScript file', () => { ExportClick(1, 2, 3, 4, 5); });
 
   this.dialog = new FloatingDialog();
 

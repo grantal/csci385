@@ -1,3 +1,9 @@
 module.exports = {
-    "extends": "airbnb-base"
+  extends: 'airbnb-base',
+  rules: {
+    'no-unused-vars': [
+      'error',
+      { varsIgnorePattern: '.*[E,e]xport' },
+    ],
+  },
 };
