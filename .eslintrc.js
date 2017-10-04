@@ -6,4 +6,7 @@ module.exports = {
       { varsIgnorePattern: '.*[E,e]xport' },
     ],
   },
+  env: {
+    browser: true,
+  },
 };

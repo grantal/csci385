@@ -36,7 +36,7 @@ ImporterApp.prototype.Init = function () {
   importerButtons.AddButton('images/back.png', 'Set Up Vector (-Y)', () => { myThis.SetNamedView('-y'); });
   importerButtons.AddButton('images/left.png', 'Set Up Vector (X)', () => { myThis.SetNamedView('x'); });
   importerButtons.AddButton('images/right.png', 'Set Up Vector (-X)', () => { myThis.SetNamedView('-x'); });
-  importerButtons.AddButton('images/camera.png', 'Export PostScript file', () => { ExportClick(1, 2, 3, 4, 5); });
+  importerButtons.AddButton('images/camera.png', 'Export PostScript file', () => { ExportSplat(1, 2, 3, 4, 5); });
 
   this.dialog = new FloatingDialog();
 
