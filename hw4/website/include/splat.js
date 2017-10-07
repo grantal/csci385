@@ -35,7 +35,7 @@ function vertexSplat(vertex, cameraMove) {
 
 
 // beginning and end of postscript file
-const header = '%!PS-Adobe-2.0\n/poly { 4 dict\nbegin\n/N exch def\n/A 360 N div def\n1 0 moveto\nN {\nA cos A sin lineto\n/A A 360 N div add def\n} repeat\nclosepath\nend\n} def\ngsave\n72 8.5 2 div mul dup translate\n0 72 11 8.5 sub mul translate\n1 720 div setlinewidth\n1000.0 1000.0 scale\n';
+const header = '%!PS-Adobe-2.0\n/poly { 4 dict\nbegin\n/N exch def\n/A 360 N div def\n1 0 moveto\nN {\nA cos A sin lineto\n/A A 360 N div add def\n} repeat\nclosepath\nend\n} def\ngsave\n72 8.5 2 div mul dup translate\n0 72 11 8.5 sub mul translate\n1 720 div setlinewidth\n100.0 100.0 scale\n';
 const footer = 'grestore\nshowpage';
 
 function ExportSplat(cameraMove) {
@@ -56,9 +56,9 @@ function ExportSplat(cameraMove) {
         console.log(cameraMove.center);
         console.log(cameraMove.up);
 
-        // load in vertices and faces from oj file
+        let psfile = header;
+        // load in vertices and faces from obj file
         const vertices = [];
-        const faces = [];
         const lines = e.target.result.split('\n');
         for (let i = 0; i < lines.length; i += 1) {
           // split line by whitespace
@@ -70,23 +70,26 @@ function ExportSplat(cameraMove) {
           }
           // if it's a face
           if (line[0] === 'f') {
-            faces.push([Number(line[1]), Number(line[2]), Number(line[3])]);
+            const face = [Number(line[1]), Number(line[2]), Number(line[3])];
+            // this will loop through each pair of vertices on the face and draw a line
+            console.log(face);
+            for (let j = 0; j < 3; j += 1) {
+              const v = vertices[face[j] - 1];
+              const u = vertices[face[((j + 1) % 3)] - 1];
+              psfile += '0.0 setgray\nnewpath\n';
+              psfile += `${v.x} ${v.y} moveto\n`;
+              psfile += `${u.x} ${u.y} lineto\n`;
+              psfile += 'closepath\nstroke\n';
+            }
           }
         }
 
         console.log(vertices);
 
-        let psfile = header;
-        psfile += `0.0 setgray
-newpath
--0.006944212595521401 -0.08292411231790225 moveto
--0.08231116827571414 -0.010324735513460685 lineto
-closepath
-stroke\n`;
 
         psfile += footer;
         const psfilename = file.name.replace(/\.obj/g, '.ps');
-        //download(psfilename, psfile);
+        download(psfilename, psfile);
       };
       r.readAsText(file);
     }
