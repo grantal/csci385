@@ -1,3 +1,4 @@
+/* global JSM */
 function download(filename, text) {
   /*
   This makes the browser download a text file with filename 'filename' and contents 'text'
@@ -133,11 +134,10 @@ function midpoint(a, b) {
 function findRay(cameraMove, m) {
   /*
     takes a point (m) in 2D and the camera information and returns the 3D unit vector that points
-    from the camera in the direction of m on the near clipping plane 
+    from the camera in the direction of m on the near clipping plane
   */
   let M = new JSM.Coord(m.x, m.y, 1);
   M = JSM.Unproject(M, cameraMove.eye, cameraMove.center, cameraMove.up, cameraMove.fieldOfView, 1, cameraMove.nearClippingPlane, cameraMove.farClippingPlane, [0,0,100,100]);
-  console.log(M);
   const dhat = JSM.CoordSub(M, cameraMove.eye);
   dhat.Normalize();
   return dhat;
@@ -151,18 +151,26 @@ function rayHitFace(R, d, Q1, Q2, Q3) {
   const v2 = JSM.CoordSub(Q2, Q1);
   const v3 = JSM.CoordSub(Q3, Q1);
   const n = JSM.VectorCross(v2, v3);
-  n.MultiplyScalar(1 / (v2.Length() * v3.Length));
+  const o = new JSM.Coord(n.x, n.y, n.z);
+  n.MultiplyScalar(1 / (v2.Length() * v3.Length()));
   const delta = JSM.VectorDot(JSM.CoordSub(R, Q1), n);
   const nhat = new JSM.Coord(n.x, n.y, n.z);
-  nhat.MultiplyScalar(Math.sign(d) / nhat.Length());
+  nhat.MultiplyScalar(Math.sign(delta) / nhat.Length());
   const negd = new JSM.Coord(-1 * d.x, -1 * d.y, -1 * d.z);
   const ro = JSM.VectorDot(negd, nhat);
   if (ro < 0) {
     return false;
   }
-  const theta = Math.abs(delta) / ro; 
-  const P = JSM.CoordAdd(R, d.MultiplyScalar(theta));
-
+  const theta = Math.abs(delta) / ro;
+  d.MultiplyScalar(theta);
+  const P = JSM.CoordAdd(R, d);
+  const w = JSM.CoordSub(P, Q1);
+  const o2 = JSM.VectorCross(v2, w);
+  const o3 = JSM.VectorCross(w, v3);
+  const alpha2 = o2.Length() / o.Length();
+  const alpha3 = o3.Length() / o.Length();
+  const alpha1 = (1 - alpha2) - alpha3;
+  return (alpha1 >= 0) && (alpha2 >= 0) && (alpha3 >= 0);
 }
 
 
