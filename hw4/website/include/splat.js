@@ -147,19 +147,23 @@ function rayHitFace(R, d, Q1, Q2, Q3) {
   /*
     check to see if a ray coming from R in the direction of unit vector d intersects the face
     defined by the points Q1, Q2, Q3
+    returns an array of length 2 with the first element being a bool of whether or not it hit
+    and the second element being how how long the distance along the ray in between R and the plane
+    of Q1, Q2, Q3
   */
   const v2 = JSM.CoordSub(Q2, Q1);
   const v3 = JSM.CoordSub(Q3, Q1);
   const n = JSM.VectorCross(v2, v3);
   const o = new JSM.Coord(n.x, n.y, n.z);
-  n.MultiplyScalar(1 / (v2.Length() * v3.Length()));
+  // n.MultiplyScalar(1 / (v2.Length() * v3.Length()));
+  n.Normalize();
   const delta = JSM.VectorDot(JSM.CoordSub(R, Q1), n);
   const nhat = new JSM.Coord(n.x, n.y, n.z);
   nhat.MultiplyScalar(Math.sign(delta) / nhat.Length());
   const negd = new JSM.Coord(-1 * d.x, -1 * d.y, -1 * d.z);
   const ro = JSM.VectorDot(negd, nhat);
   if (ro < 0) {
-    return false;
+    return [false, null];
   }
   const theta = Math.abs(delta) / ro;
   d.MultiplyScalar(theta);
@@ -170,9 +174,15 @@ function rayHitFace(R, d, Q1, Q2, Q3) {
   const alpha2 = o2.Length() / o.Length();
   const alpha3 = o3.Length() / o.Length();
   const alpha1 = (1 - alpha2) - alpha3;
-  return (alpha1 >= 0) && (alpha2 >= 0) && (alpha3 >= 0);
+  return [(alpha1 >= 0) && (alpha2 >= 0) && (alpha3 >= 0), theta];
 }
 
+const R = new JSM.Coord(0, 0, 0);
+const d = new JSM.Coord(1, 1, 0);
+const Q1 = new JSM.Coord(2, 0, 0);
+const Q2 = new JSM.Coord(0, 2, 0);
+const Q3 = new JSM.Coord(0, 0, 2);
+console.log(rayHitFace(R, d, Q1, Q2, Q3));
 
 // beginning and end of postscript file
 const header = '%!PS-Adobe-2.0\n/poly { 4 dict\nbegin\n/N exch def\n/A 360 N div def\n1 0 moveto\nN {\nA cos A sin lineto\n/A A 360 N div add def\n} repeat\nclosepath\nend\n} def\ngsave\n0 72 11 8.5 sub mul translate\n1 5 div setlinewidth\n5.0 5.0 scale\n';
