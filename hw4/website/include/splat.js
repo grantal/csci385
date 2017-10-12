@@ -173,12 +173,23 @@ function rayHitFace(R, passedd, Q1, Q2, Q3) {
   const P = JSM.CoordAdd(R, d);
   const w = JSM.CoordSub(P, Q1);
   const o2 = JSM.VectorCross(v2, w);
-  const o3 = JSM.VectorCross(v3, w);
+  const o3 = JSM.VectorCross(w, v3);
+  // if o2 or o3 are pointing opposite o
+  if (JSM.VectorDot(o, o2) < 0 || JSM.VectorDot(o, o3) < 0) {
+    return [false, theta, P];
+  }
   const alpha2 = o2.Length() / o.Length();
   const alpha3 = o3.Length() / o.Length();
   const alpha1 = (1 - alpha2) - alpha3;
-  return [(alpha1 >= 0) && (alpha2 >= 0) && (alpha3 >= 0), theta, P, Q1, Q2, Q3];
+  return [(alpha1 >= 0) && (alpha2 >= 0) && (alpha3 >= 0), theta, P, alpha1, alpha2, alpha3];
 }
+
+const R = new JSM.Coord(0, 5, 0);
+const d = new JSM.Coord(1, 0, 0);
+const Q1 = new JSM.Coord(2, 1, -1);
+const Q2 = new JSM.Coord(2, -1, -1);
+const Q3 = new JSM.Coord(2, -1, 1);
+console.log(rayHitFace(R, d, Q1, Q2, Q3));
 
 
 function rayHitFaceNo(R, d, faceNo, faces, vertices) {
@@ -316,6 +327,9 @@ function ExportSplat(cameraMove) {
                   const prjP = vertexSplat(result[2], cameraMove);
                   psfile += `${prjP.x} ${prjP.y} 0.7 0 360 arc closepath\n`
                   psfile += `${facecolors[j][0]} ${facecolors[j][1]} ${facecolors[j][2]} setrgbcolor fill\n`;
+                  psfile += '/Times-Roman findfont\n2 scalefont\nsetfont\nnewpath\n';
+                  psfile += `${prjP.x} ${prjP.y} moveto\n`;
+                  psfile += `(${result[3]},${result[4]},${result[5]}) show\n`;
                 }
               }
             }
