@@ -87,6 +87,7 @@ ImporterApp.prototype.GetWelcomeText = function () {
   const welcomeText = [
     '<div class="welcometitle">Welcome to Online 3D Viewer!</div>',
     '<div class="welcometext">Here you can view your local 3D models online. You have three ways to open a file. Use the open button above to select files, simply drag and drop files to this browser window, or define the url of the files as location hash.</div>',
+    '<div class="welcometext">Use the camera button to output a postscript file. That feature only works with obj files.</div>',
     '<div class="welcometextformats">Supported formats: 3ds, obj, stl.</div>',
     '<div class="welcometext">Powered by <a target="_blank" href="https://github.com/mrdoob/three.js/">Three.js</a> and <a target="_blank" href="https://github.com/kovacsv/JSModeler">JSModeler</a>.</div>',
     '<div class="welcometext"><a target="_blank" href="https://github.com/kovacsv/Online3DViewer"><img src="images/githublogo.png"/></a></div>',
