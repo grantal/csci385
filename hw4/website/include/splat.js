@@ -184,13 +184,6 @@ function rayHitFace(R, passedd, Q1, Q2, Q3) {
   return [(alpha1 >= 0) && (alpha2 >= 0) && (alpha3 >= 0), theta, P, alpha1, alpha2, alpha3];
 }
 
-const R = new JSM.Coord(0, 5, 0);
-const d = new JSM.Coord(1, 0, 0);
-const Q1 = new JSM.Coord(2, 1, -1);
-const Q2 = new JSM.Coord(2, -1, -1);
-const Q3 = new JSM.Coord(2, -1, 1);
-console.log(rayHitFace(R, d, Q1, Q2, Q3));
-
 
 function rayHitFaceNo(R, d, faceNo, faces, vertices) {
   /*
@@ -220,8 +213,8 @@ function ExportSplat(cameraMove) {
     const regexobj = /\w*\.obj/;
     if (regexobj.test(file.name)) {
       const r = new FileReader();
-      r.onload = function fileLoaded(e) {
 
+      r.onload = function fileLoaded(e) {
         let psfile = header;
         // load in vertices and faces from obj file
         const vertices = [];
@@ -247,25 +240,18 @@ function ExportSplat(cameraMove) {
               const v = vertices[face[j] - 1];
               const u = vertices[face[((j + 1) % 3)] - 1];
               // so it the key is 31, thats the fourth face, second edge
-              segments.set((faces.length * 10) + j, [v ,[u]]);
-              /*
-              psfile += '0.0 setgray\nnewpath\n';
-              psfile += `${v.x} ${v.y} moveto\n`;
-              psfile += `${u.x} ${u.y} lineto\n`;
-              psfile += 'closepath\nstroke\n';
-              */
+              segments.set((faces.length * 10) + j, [v, [u]]);
               // loops through every other pair of vertices of all previous faces to find
               // intersections
               for (let k = 0; k < faces.length; k += 1) {
                 for (let h = 0; h < 3; h += 1) {
                   const v2 = vertices[faces[k][h] - 1];
                   const u2 = vertices[faces[k][((h + 1) % 3)] - 1];
+
                   // make sure these edges are not the same
-                  if (!((v.IsEqual(v2) && u.IsEqual(u2)) || (v.IsEqual(u2) && u.IsEqual(v2)))){
-                    // makes a circle at the intersection
+                  if (!((v.IsEqual(v2) && u.IsEqual(u2)) || (v.IsEqual(u2) && u.IsEqual(v2)))) {
                     const result = intersect(v, u, v2, u2);
                     if (result) {
-                      //psfile += `${result.x} ${result.y} 0.7 0 360 arc closepath\n0.0 setgray fill\n`;
                       // add this intersection to the dict entry for each line segment it's on
                       segments.get((faces.length * 10) + j)[1].push(result);
                       segments.get((k * 10) + h)[1].push(result);
@@ -291,16 +277,8 @@ function ExportSplat(cameraMove) {
           // Face number back by integer dividing the key by 10
           const faceno = Math.floor(tuple[0] / 10);
 
-          // color the dots
-          const colorVector = new JSM.Coord(v.x, v.y, v.z);
-          colorVector.Normalize();
-          colorVector.z = Math.random();
-          
-          const facecolors = [[1,0,0],[0,1,0],[0,0,1],[0.5,0.5,0.5]];
-
           // add each midpoint of each intersection on the segment
           for (let i = 0; i < intersections.length; i += 1) {
-            console.log("new midpoint");
             let a = 0;
             const b = intersections[i];
             if (i === 0) {
@@ -312,8 +290,6 @@ function ExportSplat(cameraMove) {
             const dhat = findRay(cameraMove, m);
             // find how far away the current face is
             const fdist = rayHitFaceNo(cameraMove.eye, dhat, faceno, faces, vertices3d)[1];
-            const firstresult = rayHitFaceNo(cameraMove.eye, dhat, faceno, faces, vertices3d);
-            console.log("first result", firstresult);
             let noObstruction = true;
             for (let j = 0; j < faces.length; j += 1) {
               // if this is is not the face that this midpoint lives on
@@ -322,28 +298,17 @@ function ExportSplat(cameraMove) {
                 if (result[0] && (result[1] < fdist)) {
                   // record that there was an obsctruction
                   noObstruction = false;
-                  //console.log(result[0], fdist, result[1]);
-                  console.log(result);
-                  const prjP = vertexSplat(result[2], cameraMove);
-                  psfile += `${prjP.x} ${prjP.y} 0.7 0 360 arc closepath\n`
-                  psfile += `${facecolors[j][0]} ${facecolors[j][1]} ${facecolors[j][2]} setrgbcolor fill\n`;
-                  psfile += '/Times-Roman findfont\n2 scalefont\nsetfont\nnewpath\n';
-                  psfile += `${prjP.x} ${prjP.y} moveto\n`;
-                  psfile += `(${result[3]},${result[4]},${result[5]}) show\n`;
                 }
               }
             }
             if (noObstruction) {
               // if there is no face closer to the camera than the face this midpoint is on,
               // draw a black line between its endpoints
-              //psfile += '0.0 setgray\nnewpath\n';
-              psfile += `${facecolors[faceno][0]} ${facecolors[faceno][1]} ${facecolors[faceno][2]} setrgbcolor\n`;
-              psfile += 'newpath\n';
+              psfile += '0.0 setgray\nnewpath\n';
               psfile += `${a.x} ${a.y} moveto\n`;
               psfile += `${b.x} ${b.y} lineto\n`;
               psfile += 'closepath\nstroke\n';
             }
-            //psfile += `${m.x} ${m.y} 0.7 0 360 arc closepath\n${colorVector.x} ${colorVector.y} ${colorVector.z} setrgbcolor fill\n`;
           }
         }
 
