@@ -219,6 +219,7 @@ function drawScene(gl, programInfo, buffers, xChange, yChange) {
 
   yRotation += yChange;
   xRotation += xChange;
+  console.log(xRotation);
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
